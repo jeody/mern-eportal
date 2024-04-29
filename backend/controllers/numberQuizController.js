@@ -46,13 +46,16 @@ const getQuestionaires = asyncHandler(async (req, res) => {
 const getQuestions = asyncHandler(async (req, res) => {
   //const quizzes = await Quiz.find().sort('-createdAt');
   const set = req.params.set.toLowerCase();
+
   //const slug = req.params.slug.toLowerCase();
   const quizzes = await NumberQuiz.find({ set: set }).sort('-createdAt');
   if (!quizzes) {
     res.status(500);
     throw new Error('Something went wrong');
   }
-  res.status(200).json(quizzes);
+
+  const shuffledQuestions = quizzes.sort(() => Math.random() - 0.5);
+  res.status(200).json(shuffledQuestions);
 });
 
 // Delete Questionaire
