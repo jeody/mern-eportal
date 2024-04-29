@@ -13,6 +13,8 @@ const brandRoute = require('./routes/brandRoute');
 const couponRoute = require('./routes/couponRoute');
 const orderRoute = require('./routes/orderRoute');
 const quizRoute = require('./routes/quizRoute');
+const numberQuizRoute = require('./routes/numberQuizRoute');
+const verbalQuizRoute = require('./routes/verbalQuizRoute');
 const pdfRoute = require('./routes/pdfRoute');
 //const uploadRoute = require('./routes/uploadRoute');
 const errorHandler = require('./middleware/errorMiddleware');
@@ -47,6 +49,8 @@ app.use('/api/brand', brandRoute);
 app.use('/api/coupon', couponRoute);
 app.use('/api/order', orderRoute);
 app.use('/api/quiz', quizRoute);
+app.use('/api/numberQuiz', numberQuizRoute);
+app.use('/api/verbalQuiz', verbalQuizRoute);
 app.use('/api/pdfUpload', pdfRoute);
 //app.use('/api/upload', uploadRoute);
 
@@ -62,6 +66,16 @@ app.get('/api/uploadfiles', async (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+//Connect to Local MongoDB
+mongoose
+  .connect('mongodb://0.0.0.0:27017/mern-afpsat')
+
+  .then(() => {
+    console.log(`MongoDb Server running on ${PORT}`);
+  })
+  .catch(() => {
+    console.log('Local MongoDb failed');
+  });
 
 // mongoose
 //   .connect(process.env.MONGO_URI)
@@ -71,13 +85,3 @@ const PORT = process.env.PORT || 5000;
 //     });
 //   })
 //   .catch((err) => console.log(err));
-
-//Connect to Local MongoDB
-mongoose
-  .connect('mongodb://localhost:27017/mern-afpsat')
-  .then(() => {
-    console.log(`MongoDb Server running on ${PORT}`);
-  })
-  .catch(() => {
-    console.log('mongodb failed');
-  });

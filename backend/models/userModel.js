@@ -82,6 +82,44 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    permitApproved: {
+      type: Boolean,
+      default: false,
+    },
+    approveAbstract: {
+      type: Boolean,
+      default: false,
+    },
+    approvedVerbal: {
+      type: Boolean,
+      default: false,
+    },
+    approvedNumerical: {
+      type: Boolean,
+      default: false,
+    },
+    pyschometId: {
+      type: String,
+    },
+    formSet: {
+      type: String,
+      default: 'a',
+    },
+    itemsNumber: {
+      type: Number,
+      default: 0,
+    },
+    scoreNumber: {
+      type: Number,
+      default: 0,
+    },
+    percentNumber: {
+      type: Number,
+      default: 0,
+    },
+    examResults: {
+      type: [Object],
+    },
   },
   {
     timestamps: true,

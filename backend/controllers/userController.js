@@ -8,8 +8,8 @@ const sendEmail = require('../utils/sendEmail');
 const imageValidate = require('../utils/imageValidate');
 const Token = require('../models/tokenModel');
 const crypto = require('crypto');
-const permitValidate = require('../utils/permitValidate');
 const Cryptr = require('cryptr');
+const permitValidate = require('../utils/permitValidate');
 const { OAuth2Client } = require('google-auth-library');
 const { log } = require('console');
 
@@ -65,7 +65,18 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    const { _id, name, email, phone, bio, photo, role, isVerified } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      photo,
+      role,
+      isVerified,
+      permitUploaded,
+      formSet,
+    } = user;
 
     res.status(201).json({
       _id,
@@ -77,6 +88,8 @@ const registerUser = asyncHandler(async (req, res) => {
       role,
       isVerified,
       token,
+      permitUploaded,
+      formSet,
     });
   } else {
     res.status(400);
@@ -153,7 +166,18 @@ const loginUser = asyncHandler(async (req, res) => {
       secure: true,
     });
 
-    const { _id, name, email, phone, bio, photo, role, isVerified } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      photo,
+      permitUploaded,
+      role,
+      isVerified,
+      formSet,
+    } = user;
 
     res.status(200).json({
       _id,
@@ -162,9 +186,11 @@ const loginUser = asyncHandler(async (req, res) => {
       phone,
       bio,
       photo,
+      permitUploaded,
       role,
       isVerified,
       token,
+      formSet,
     });
   } else {
     res.status(500);
@@ -269,7 +295,18 @@ const loginWithCode = asyncHandler(async (req, res) => {
       secure: true,
     });
 
-    const { _id, name, email, phone, bio, photo, role, isVerified } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      photo,
+      permitUploaded,
+      role,
+      isVerified,
+      formSet,
+    } = user;
 
     res.status(200).json({
       _id,
@@ -278,9 +315,11 @@ const loginWithCode = asyncHandler(async (req, res) => {
       phone,
       bio,
       photo,
+      permitUploaded,
       role,
       isVerified,
       token,
+      formSet,
     });
   }
 });
@@ -406,6 +445,11 @@ const getUser = asyncHandler(async (req, res) => {
       address,
       permit,
       permitUploaded,
+      permitApproved,
+      approveAbstract,
+      approvedVerbal,
+      approvedNumerical,
+      formSet,
     } = user;
 
     res.status(200).json({
@@ -420,6 +464,11 @@ const getUser = asyncHandler(async (req, res) => {
       address,
       permit,
       permitUploaded,
+      permitApproved,
+      approveAbstract,
+      approvedVerbal,
+      approvedNumerical,
+      formSet,
     });
   } else {
     res.status(404);
@@ -721,7 +770,17 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
         secure: true,
       });
 
-      const { _id, name, email, phone, bio, photo, role, isVerified } = newUser;
+      const {
+        _id,
+        name,
+        email,
+        phone,
+        bio,
+        photo,
+        permitUploaded,
+        role,
+        isVerified,
+      } = newUser;
 
       res.status(201).json({
         _id,
@@ -730,6 +789,7 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
         phone,
         bio,
         photo,
+        permitUploaded,
         role,
         isVerified,
         token,
@@ -751,7 +811,17 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
       secure: true,
     });
 
-    const { _id, name, email, phone, bio, photo, role, isVerified } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      photo,
+      permitUploaded,
+      role,
+      isVerified,
+    } = user;
 
     res.status(201).json({
       _id,
@@ -760,6 +830,7 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
       phone,
       bio,
       photo,
+      permitUploaded,
       role,
       isVerified,
       token,
@@ -932,6 +1003,186 @@ const getPdfUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Approve Exam Permit
+const approveExamPermit = asyncHandler(async (req, res) => {
+  const { proctorId, id } = req.body;
+  const user = await User.findById(id);
+
+  if (user) {
+    const { pyschometId, permitApproved } = user;
+
+    if (permitApproved === false) {
+      user.permitApproved = true;
+      user.pyschometId = proctorId;
+      await user.save();
+      res.send('Exam Permit Approved!');
+    } else {
+      user.permitApproved = false;
+      user.pyschometId = '';
+      await user.save();
+      res.send('Exam Permit Disapproved!');
+    }
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// Approve Abstract Permit
+const approveAbstractExam = asyncHandler(async (req, res) => {
+  const { proctorId, id } = req.body;
+  const user = await User.findById(id);
+
+  if (user) {
+    const { pyschometId, approveAbstract } = user;
+
+    if (approveAbstract === false) {
+      user.approveAbstract = true;
+      user.pyschometId = proctorId;
+      await user.save();
+      res.send('Abstract Reasoning Started!');
+    } else {
+      user.approveAbstract = false;
+      user.pyschometId = '';
+      await user.save();
+      res.send('Abstract Reasoning Stopped!');
+    }
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// Approved Verbal Exam
+const approveVerbalExam = asyncHandler(async (req, res) => {
+  const { proctorId, id } = req.body;
+  const user = await User.findById(id);
+
+  if (user) {
+    const { pyschometId, approvedVerbal } = user;
+
+    if (approvedVerbal === false) {
+      user.approvedVerbal = true;
+      user.pyschometId = proctorId;
+      await user.save();
+      res.send('Verbal Reasoning Started!');
+    } else {
+      user.approvedVerbal = false;
+      user.pyschometId = '';
+      await user.save();
+      res.send('Verbal Reasoning Stopped!');
+    }
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// Approve Numerical Exam
+const approveNumericalExam = asyncHandler(async (req, res) => {
+  const { proctorId, id } = req.body;
+  const user = await User.findById(id);
+
+  if (user) {
+    const { pyschometId, approvedNumerical } = user;
+
+    if (approvedNumerical === false) {
+      user.approvedNumerical = true;
+      user.pyschometId = proctorId;
+      await user.save();
+      res.send('Numerical Reasoning Started!');
+    } else {
+      user.approvedNumerical = false;
+      user.pyschometId = '';
+      await user.save();
+      res.send('Numerical Reasoning Stopped!');
+    }
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// openApproveAbstract
+const openApproveAbstract = asyncHandler(async (req, res) => {
+  const proctorId = req.params.id;
+
+  const users = await User.find({ pyschometId: proctorId });
+
+  if (users) {
+    const updateObjectInArray = users.map(async () => {
+      return {
+        approvedAbstract: true,
+      };
+    });
+    //await user.save();
+    console.log(updateObjectInArray);
+  } else {
+    res.status(500);
+    throw new Error('Something went wrong');
+  }
+  res.status(200).json(users);
+});
+
+// Change Form Set
+const changeFormSet = asyncHandler(async (req, res) => {
+  const { proctorId, id, formSet } = req.body;
+  const user = await User.findById(id);
+
+  if (user) {
+    if (formSet === 'a') {
+      user.formSet = 'b';
+      user.pyschometId = proctorId;
+      await user.save();
+      res.send('Exam change to Form B');
+    } else {
+      if (formSet === 'b') {
+        user.formSet = 'c';
+        user.pyschometId = proctorId;
+        await user.save();
+        res.send('Exam change to Form C');
+      } else {
+        if (formSet === 'c') {
+          user.formSet = 'd';
+          user.pyschometId = proctorId;
+          await user.save();
+          res.send('Exam change to Form C');
+        } else {
+          user.formSet = 'a';
+          user.pyschometId = proctorId;
+          await user.save();
+          res.send('Exam change to Form A');
+        }
+      }
+    }
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// saveUserScore
+const saveUserScore = asyncHandler(async (req, res) => {
+  const { id, totalQuestionsAnswered, totalCorrectAnswer, numberPercentage } =
+    req.body;
+  const user = await User.findById(id);
+
+  if (user) {
+    user.examResults.push({
+      numberItems: totalQuestionsAnswered,
+      numberScore: totalCorrectAnswer,
+      numberPercent: numberPercentage,
+      examId: id,
+    });
+    user.approvedNumerical = false;
+    await user.save();
+    res.send('User valid!');
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -955,4 +1206,11 @@ module.exports = {
   getApplicants,
   permitUpload,
   getPdfUser,
+  approveExamPermit,
+  approveAbstractExam,
+  approveVerbalExam,
+  approveNumericalExam,
+  openApproveAbstract,
+  changeFormSet,
+  saveUserScore,
 };
